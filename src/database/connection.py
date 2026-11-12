@@ -2,7 +2,9 @@ import sqlite3
 import os
 from contextlib import contextmanager
 
-DEFAULT_DB_PATH = "data/storage.sqlite3"
+from log import log_ok
+
+DEFAULT_DB_PATH = ".turisty/storage.sqlite3"
 
 @contextmanager
 def get_db(path=DEFAULT_DB_PATH):
@@ -19,3 +21,11 @@ def get_db(path=DEFAULT_DB_PATH):
         raise
     finally:
         conn.close()
+
+def init_schema(conn):
+    schema_path = "database/schema.sql"
+
+    with get_db() as conn, open(schema_path, encoding="utf-8") as f:
+        conn.executescript(f.read())
+
+    log_ok("Synced database")
