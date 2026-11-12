@@ -1,5 +1,3 @@
-> [!Warning]
-> les soumission ne doivent pas etre utilisé comme reference de devlopement
 # Turisty - Informations general
 ## Présentation du projet
 Turisty est une application Web en Python pour découvrir Montréal et organiser un séjour ou une sortie selon son budget et ses intérêts. Les touristes, les nouveaux arrivants et les étudiants pourront consulter des lieux, préparer un programme et rencontrer des personnes avec qui participer à des activités.
