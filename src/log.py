@@ -1,3 +1,4 @@
+# this is a small logger to make debugging easier
 from datetime import datetime
 import sys
 
