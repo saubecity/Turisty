@@ -1,3 +1,4 @@
+-- this file is executed on server start to insure the table structures exist
 PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS Compte (
