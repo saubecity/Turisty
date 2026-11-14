@@ -1,12 +1,12 @@
 from datetime import datetime, timedelta
 
-from fastapi.routing import APIRouter
+#from fastapi.routing import APIRouter
 
 STATUT_ATTENTE = "En attente"
 STATUT_ACCEPTEE = "Acceptée"
 STATUT_REFUSEE = "Refusée"
 
-router = APIRouter(prefix="/sorties", tags=["Sorties"])
+#router = APIRouter(prefix="/sorties", tags=["Sorties"])
 
 def demander_participation(conn, id_membre, id_sortie, maintenant):
     if id_membre is None:
