@@ -6,24 +6,36 @@ CREATE TABLE IF NOT EXISTS Compte (
     NomCompte   TEXT    NOT NULL,
     EmailCompte TEXT    NOT NULL UNIQUE,
     MotdePasse  TEXT    NOT NULL, -- as a hash
-    RoleCompte  TEXT    NOT NULL DEFAULT 'membre' 
+    RoleCompte  TEXT    NOT NULL DEFAULT 'membre'
 );
 
 CREATE TABLE IF NOT EXISTS Attraction (
     IdAttraction      INTEGER PRIMARY KEY AUTOINCREMENT,
     NameAttraction    TEXT    NOT NULL,
-    AdresseAttraction TEXT    NOT NULL,
+    AdresseAttraction TEXT,
+    Description TEXT,
+    date_debut TEXT,
+    date_fin TEXT,
     TypeAttraction    TEXT    NOT NULL,
-    PrixAttraction    NUMERIC NOT NULL DEFAULT 0 CHECK (PrixAttraction >= 0),
-    AgeAttraction     TEXT    NOT NULL
+    PrixAttraction    NUMERIC DEFAULT 0 CHECK (PrixAttraction >= 0),
+    MinAge INTEGER CHECK (MinAge >= 0), -- can be NULL for no min or max age, if both are NULL, the event has no age restrictions
+    MaxAge INTEGER CHECK (MaxAge >= MinAge),
+    Latitude REAL,
+    Longitude REAL,
+    status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'cancelled', 'postponed')),
+    dataset_id TEXT,
+    FOREIGN KEY (dataset_id) REFERENCES dataset_metadata(dataset_id) ON DELETE CASCADE
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_attraction_triple ON Attraction(NameAttraction, date_debut, dataset_id);
 
 CREATE TABLE IF NOT EXISTS program (
     IdProgram  INTEGER PRIMARY KEY AUTOINCREMENT,
     IdCompte   INTEGER NOT NULL,
     Nomprogram TEXT    NOT NULL,
     budget     NUMERIC NOT NULL CHECK (budget >= 0),
-    NbDays     INTEGER NOT NULL CHECK (NbDays BETWEEN 1 AND 3),
+    StartDate TEXT NOT NULL,
+    EndDate TEXT NOT NULL CHECK (EndDate >= StartDate),
     FOREIGN KEY (IdCompte) REFERENCES Compte (IdCompte) ON DELETE CASCADE
 );
 
@@ -31,7 +43,8 @@ CREATE TABLE IF NOT EXISTS Etape (
     IdEtape      INTEGER PRIMARY KEY AUTOINCREMENT,
     IdProgram    INTEGER NOT NULL,
     IdAttraction INTEGER NOT NULL,
-    Numerojour   INTEGER NOT NULL CHECK (Numerojour BETWEEN 1 AND 3),
+    StartDate TEXT NOT NULL,
+    EndDate TEXT NOT NULL CHECK (EndDate >= StartDate),
     FOREIGN KEY (IdProgram)    REFERENCES program (IdProgram) ON DELETE CASCADE,
     FOREIGN KEY (IdAttraction) REFERENCES Attraction (IdAttraction)
 );
@@ -61,7 +74,15 @@ CREATE TABLE IF NOT EXISTS Message (
     IdSortie       INTEGER NOT NULL,
     IdCompte       INTEGER NOT NULL,
     ContenuMessage TEXT    NOT NULL,
-    DateEnvoi      TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP, 
+    DateEnvoi      TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (IdSortie) REFERENCES Sortie (IdSortie) ON DELETE CASCADE,
     FOREIGN KEY (IdCompte) REFERENCES Compte (IdCompte) ON DELETE CASCADE
 );
+
+-- this table exists to sync external datasets with ours
+CREATE TABLE IF NOT EXISTS dataset_metadata (
+    dataset_id TEXT PRIMARY KEY,
+    dataset_url TEXT NOT NULL,
+    fetched_date TEXT NOT NULL, -- as a date
+    expiration_date TEXT NOT NULL
+)

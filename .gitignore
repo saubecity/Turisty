@@ -1,3 +1,4 @@
-src/__pycache__/
-src/data/
 src/.turisty/
+src/database/.turisty/
+src/database/__pycache__/
+src/__pycache__/
