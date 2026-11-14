@@ -12,7 +12,7 @@ from database import connection
 
 @dataclass
 class DatasetMetadata:
-    sync_handler: Callable[[dict], None]
+    sync_handler: Callable[[dict, str], None]
     dataset_id: str
     dataset_api: str
     cache_duration: timedelta = timedelta(hours=24)
@@ -91,13 +91,11 @@ class DatasetMetadata:
             return
 
         log_info(f"Cache for dataset {self.dataset_id} is expired, updating")
-        resource = self.get_resource()
         self.register_cache()
+        self.sync_handler(self.get_resource(), self.dataset_id)
 
     def sync(self):
         self.update()
-
-
 
 
 
@@ -118,14 +116,63 @@ def download_with_progress(response, name) -> bytes:
     return b"".join(chunks)
 
 
+def general_sync_handler(geojson: dict, dataset_id: str):
+    with connection.get_db() as conn:
+        features = geojson["features"]
+        total = len(features) - 1
+        cur = conn.cursor()
+
+        for index, feature in enumerate(features):
+            properties = feature["properties"]
+            price = None
+            if properties["cout"].upper() == "GRATUIT": price = 0
+
+
+            cur.execute(
+                """
+                INSERT INTO Attraction (
+                    NameAttraction, Description, TypeAttraction, date_debut, date_fin,
+                    PrixAttraction, Latitude, Longitude, dataset_id
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(NameAttraction, date_debut, dataset_id) DO UPDATE SET
+                    Description = excluded.Description,
+                    date_fin = excluded.date_fin,
+                    TypeAttraction = excluded.TypeAttraction,
+                    PrixAttraction = excluded.PrixAttraction,
+                    Latitude = excluded.Latitude,
+                    Longitude = excluded.Longitude,
+                    dataset_id = excluded.dataset_id
+            """,
+                (
+                    properties["titre"],
+                    properties["description"],
+                    properties["type_evenement"],
+                    properties["date_debut"],
+                    properties["date_fin"],
+                    price,
+                    properties["lat"],
+                    properties["long"],
+                    dataset_id,
+                ),
+            )
+
+            log_info(f"Updating dataset {dataset_id}: \033[1m{index}/{total}\033[0m features updated\r", end="")
+
+        sys.stdout.write("\n")
+        conn.commit()
+        log_ok(f"Dataset \033[1m{dataset_id}\033[0m updated")
+
+
+
 datasets = [
     DatasetMetadata(
         dataset_id="6a4cbf2c-c9b7-413a-86b1-e8f7081e2578",
         dataset_api="https://donnees.montreal.ca/api/3/",
-        cache_duration=timedelta(minutes=4)
+        cache_duration=timedelta(days=3),
+        sync_handler=general_sync_handler
     ),
 ]
-
 
 
 def sync():
@@ -135,4 +182,3 @@ def sync():
         except ValueError as e:
             log_err(f"Failed to sync {dataset.dataset_id}: {e}")
             log_warn(f"Skipping update for dataset {dataset.dataset_id}")
-    log_ok("Dataset synced")
