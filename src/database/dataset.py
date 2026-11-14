@@ -169,7 +169,7 @@ datasets = [
     DatasetMetadata(
         dataset_id="6a4cbf2c-c9b7-413a-86b1-e8f7081e2578",
         dataset_api="https://donnees.montreal.ca/api/3/",
-        cache_duration=timedelta(days=3),
+        cache_duration=timedelta(days=2),
         sync_handler=general_sync_handler
     ),
 ]
