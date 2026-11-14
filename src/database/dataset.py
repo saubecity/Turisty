@@ -1,7 +1,9 @@
 from dataclasses import dataclass
+from datetime import date, datetime, timedelta
 import json
 from multiprocessing import Value
 import sys
+from typing import Callable
 
 import requests
 
@@ -10,14 +12,19 @@ from database import connection
 
 @dataclass
 class DatasetMetadata:
+    sync_handler: Callable[[dict], None]
     dataset_id: str
     dataset_api: str
+    cache_duration: timedelta = timedelta(hours=24)
+
+
+    @property
+    def package_url(self) -> str:
+        return self.dataset_api + "action/package_show?id=" + self.dataset_id;
 
     def get_resource(self):
         log_info(f"Fetching dataset {self.dataset_id}")
-        response = requests.get(
-            self.dataset_api + "action/package_show?id=" + self.dataset_id
-        )
+        response = requests.get(self.package_url)
         try:
             response.raise_for_status()
         except requests.HTTPError as e:
@@ -53,8 +60,45 @@ class DatasetMetadata:
         except json.JSONDecodeError as e:
             raise ValueError(e) from e
 
+    def register_cache(self):
+        with connection.get_db() as conn:
+            expiration = (datetime.now() + self.cache_duration).isoformat()
+            cur = conn.cursor()
+            cur.execute("""
+                INSERT INTO dataset_metadata (dataset_id, dataset_url, fetched_date, expiration_date)
+                VALUES (?, ?, ?, ?) ON CONFLICT(dataset_id) DO UPDATE SET
+                    dataset_url = excluded.dataset_url,
+                    fetched_date = excluded.fetched_date,
+                    expiration_date = excluded.expiration_date
+                """,(self.dataset_id, self.package_url, datetime.now().isoformat(), expiration))
+            conn.commit()
+            log_info(f"Created cache entry for dataset {self.dataset_id}")
+
+    @property
+    def cache_expired(self) -> bool:
+        with connection.get_db() as conn:
+            cur = conn.cursor()
+            cur.execute("SELECT expiration_date FROM dataset_metadata WHERE dataset_id = ?", (self.dataset_id,))
+            row = cur.fetchone()
+
+            if not row:
+                return True
+
+            return datetime.now() > datetime.fromisoformat(row["expiration_date"])
+
     def update(self):
-        connection.get_db()
+        if not self.cache_expired:
+            return
+
+        log_info(f"Cache for dataset {self.dataset_id} is expired, updating")
+        resource = self.get_resource()
+        self.register_cache()
+
+    def sync(self):
+        self.update()
+
+
+
 
 
 def download_with_progress(response, name) -> bytes:
@@ -78,13 +122,17 @@ datasets = [
     DatasetMetadata(
         dataset_id="6a4cbf2c-c9b7-413a-86b1-e8f7081e2578",
         dataset_api="https://donnees.montreal.ca/api/3/",
+        cache_duration=timedelta(minutes=4)
     ),
 ]
+
+
 
 def sync():
     for dataset in datasets:
         try:
-            dataset.get_resource()
+            dataset.sync()
         except ValueError as e:
             log_err(f"Failed to sync {dataset.dataset_id}: {e}")
             log_warn(f"Skipping update for dataset {dataset.dataset_id}")
+    log_ok("Dataset synced")

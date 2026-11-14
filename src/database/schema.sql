@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS Attraction (
     IdAttraction      INTEGER PRIMARY KEY AUTOINCREMENT,
     NameAttraction    TEXT    NOT NULL,
     AdresseAttraction TEXT    NOT NULL,
+    Description TEXT,
     TypeAttraction    TEXT    NOT NULL,
     PrixAttraction    NUMERIC NOT NULL DEFAULT 0 CHECK (PrixAttraction >= 0),
     MinAge INTEGER CHECK (MinAge >= 0), -- can be NULL for no min or max age, if both are NULL, the event has no age restrictions
@@ -77,7 +78,7 @@ CREATE TABLE IF NOT EXISTS Message (
 -- this table exists to sync external datasets with ours
 CREATE TABLE IF NOT EXISTS dataset_metadata (
     dataset_id TEXT PRIMARY KEY,
-    resource_url TEXT NOT NULL,
+    dataset_url TEXT NOT NULL,
     fetched_date TEXT NOT NULL, -- as a date
     expiration_date TEXT NOT NULL
 )
