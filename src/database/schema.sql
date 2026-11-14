@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS Compte (
     NomCompte   TEXT    NOT NULL,
     EmailCompte TEXT    NOT NULL UNIQUE,
     MotdePasse  TEXT    NOT NULL, -- as a hash
-    RoleCompte  TEXT    NOT NULL DEFAULT 'membre' 
+    RoleCompte  TEXT    NOT NULL DEFAULT 'membre'
 );
 
 CREATE TABLE IF NOT EXISTS Attraction (
@@ -15,7 +15,10 @@ CREATE TABLE IF NOT EXISTS Attraction (
     AdresseAttraction TEXT    NOT NULL,
     TypeAttraction    TEXT    NOT NULL,
     PrixAttraction    NUMERIC NOT NULL DEFAULT 0 CHECK (PrixAttraction >= 0),
-    AgeAttraction     TEXT    NOT NULL
+    MinAge INTEGER CHECK (MinAge >= 0),
+    MaxAge INTEGER CHECK (MaxAge >= MinAge),
+    Latitude REAL,
+    Longitude REAL
 );
 
 CREATE TABLE IF NOT EXISTS program (
@@ -23,7 +26,8 @@ CREATE TABLE IF NOT EXISTS program (
     IdCompte   INTEGER NOT NULL,
     Nomprogram TEXT    NOT NULL,
     budget     NUMERIC NOT NULL CHECK (budget >= 0),
-    NbDays     INTEGER NOT NULL CHECK (NbDays BETWEEN 1 AND 3),
+    StartDate TEXT NOT NULL,
+    EndDate TEXT NOT NULL CHECK (EndDate >= StartDate),
     FOREIGN KEY (IdCompte) REFERENCES Compte (IdCompte) ON DELETE CASCADE
 );
 
@@ -31,7 +35,8 @@ CREATE TABLE IF NOT EXISTS Etape (
     IdEtape      INTEGER PRIMARY KEY AUTOINCREMENT,
     IdProgram    INTEGER NOT NULL,
     IdAttraction INTEGER NOT NULL,
-    Numerojour   INTEGER NOT NULL CHECK (Numerojour BETWEEN 1 AND 3),
+    StartDate TEXT NOT NULL,
+    EndDate TEXT NOT NULL CHECK (EndDate >= StartDate),
     FOREIGN KEY (IdProgram)    REFERENCES program (IdProgram) ON DELETE CASCADE,
     FOREIGN KEY (IdAttraction) REFERENCES Attraction (IdAttraction)
 );
@@ -61,7 +66,7 @@ CREATE TABLE IF NOT EXISTS Message (
     IdSortie       INTEGER NOT NULL,
     IdCompte       INTEGER NOT NULL,
     ContenuMessage TEXT    NOT NULL,
-    DateEnvoi      TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP, 
+    DateEnvoi      TEXT    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (IdSortie) REFERENCES Sortie (IdSortie) ON DELETE CASCADE,
     FOREIGN KEY (IdCompte) REFERENCES Compte (IdCompte) ON DELETE CASCADE
 );
