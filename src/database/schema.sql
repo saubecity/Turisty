@@ -15,10 +15,13 @@ CREATE TABLE IF NOT EXISTS Attraction (
     AdresseAttraction TEXT    NOT NULL,
     TypeAttraction    TEXT    NOT NULL,
     PrixAttraction    NUMERIC NOT NULL DEFAULT 0 CHECK (PrixAttraction >= 0),
-    MinAge INTEGER CHECK (MinAge >= 0),
+    MinAge INTEGER CHECK (MinAge >= 0), -- can be NULL for no min or max age, if both are NULL, the event has no age restrictions
     MaxAge INTEGER CHECK (MaxAge >= MinAge),
     Latitude REAL,
-    Longitude REAL
+    Longitude REAL,
+    status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'cancelled', 'postponed')),
+    dataset_id TEXT,
+    FOREIGN KEY (dataset_id) REFERENCES dataset_metadata(dataset_id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS program (
@@ -70,3 +73,11 @@ CREATE TABLE IF NOT EXISTS Message (
     FOREIGN KEY (IdSortie) REFERENCES Sortie (IdSortie) ON DELETE CASCADE,
     FOREIGN KEY (IdCompte) REFERENCES Compte (IdCompte) ON DELETE CASCADE
 );
+
+-- this table exists to sync external datasets with ours
+CREATE TABLE IF NOT EXISTS dataset_metadata (
+    dataset_id TEXT PRIMARY KEY,
+    resource_url TEXT NOT NULL,
+    fetched_date TEXT NOT NULL, -- as a date
+    expiration_date TEXT NOT NULL
+)
