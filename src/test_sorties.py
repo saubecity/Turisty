@@ -1,6 +1,7 @@
 import sqlite3
 from datetime import datetime
 from pathlib import Path
+from database import connection
 
 from sorties import (
     STATUT_ACCEPTEE,

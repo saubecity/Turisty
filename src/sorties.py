@@ -1,9 +1,12 @@
 from datetime import datetime, timedelta
 
+#from fastapi.routing import APIRouter
+
 STATUT_ATTENTE = "En attente"
 STATUT_ACCEPTEE = "Acceptée"
 STATUT_REFUSEE = "Refusée"
 
+#router = APIRouter(prefix="/sorties", tags=["Sorties"])
 
 def demander_participation(conn, id_membre, id_sortie, maintenant):
     if id_membre is None:
@@ -11,7 +14,7 @@ def demander_participation(conn, id_membre, id_sortie, maintenant):
 
     ligne = conn.execute(
         "SELECT DateHeureSortie, NbPlacesMax FROM Sortie WHERE IdSortie = ?",
-        (id_sortie,), 
+        (id_sortie,),
     ).fetchone()
     if ligne is None:
         raise ValueError("Cette sortie n'existe pas.")
@@ -22,17 +25,17 @@ def demander_participation(conn, id_membre, id_sortie, maintenant):
 
     existante = conn.execute(
         "SELECT 1 FROM Demande WHERE IdSortie = ? AND IdCompte = ?",
-        (id_sortie, id_membre),  
+        (id_sortie, id_membre),
     ).fetchone()
     if existante is not None:
         raise ValueError("Vous avez déjà fait une demande pour cette sortie.")
 
- 
+
     acceptees = conn.execute(
         "SELECT COUNT(*) FROM Demande WHERE IdSortie = ? AND StatutDemande = ?",
         (id_sortie, STATUT_ACCEPTEE),
     ).fetchone()[0]
-    if acceptees >= nb_places_max: 
+    if acceptees >= nb_places_max:
         raise ValueError("Cette sortie est complète.")
 
     return {"id_membre": id_membre, "id_sortie": id_sortie, "statut": STATUT_ATTENTE}
@@ -58,12 +61,12 @@ def inserer_donnees_demo(conn):
     accepte_1 = _inserer(conn, sql_compte, ("Ami Accepté 1", "accepte1@demo.ca", "hash-demo"))
     accepte_2 = _inserer(conn, sql_compte, ("Ami Accepté 2", "accepte2@demo.ca", "hash-demo"))
     ami_refuse = _inserer(conn, sql_compte, ("Ami Refusé", "refuse@demo.ca", "hash-demo"))
-    
+
     attraction = _inserer(
         conn,
-        "INSERT INTO Attraction (NameAttraction, AdresseAttraction, TypeAttraction, PrixAttraction, AgeAttraction) "
-        "VALUES (?, ?, ?, ?, ?)",
-        ("Biodôme (démo)", "4777 avenue Pierre-De Coubertin", "activite", 20, "tous"),
+        "INSERT INTO Attraction (NameAttraction, AdresseAttraction, TypeAttraction, PrixAttraction)"
+        "VALUES (?, ?, ?, ?)",
+        ("Biodôme (démo)", "4777 avenue Pierre-De Coubertin", "activite", 20),
     )
 
     sql_sortie = "INSERT INTO Sortie (IdCompte, IdAttraction, DateHeureSortie, NbPlacesMax) VALUES (?, ?, ?, ?)"
