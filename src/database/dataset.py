@@ -103,13 +103,16 @@ def download_with_progress(response, name) -> bytes:
     """ adds a download progress for debugging"""
     downloaded_size = 0
     chunks = []
+    last_logged_mb = 0
 
     for chunk in response.iter_content(chunk_size=8192):
         if chunk:
           chunks.append(chunk)
           downloaded_size += len(chunk)
           downloaded_mb = downloaded_size / (1024 * 1024)
-          log_debug(f"Downloading \033[1m{name}\033[0m: \033[1m{downloaded_mb:.2f}\033[0m MB received\r", end="")
+          if downloaded_mb - last_logged_mb >= 0.1 or downloaded_size == len(chunk):
+              log_debug(f"Downloading \033[1m{name}\033[0m: \033[1m{downloaded_mb:.2f}\033[0m MB received\r", end="")
+              last_logged_mb = downloaded_mb
 
     sys.stdout.write("\n")
 
