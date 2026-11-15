@@ -1,7 +1,14 @@
 from fastapi import FastAPI
+from log import log_err, log_ok, log_info
+import parser
 
+from database import connection
+from database import dataset
 app = FastAPI(title="Turisty", version="1.0")
 
-@app.get("/hi")
-async def root():
-    return {"test":"yay it works"}
+def main():
+    parser.run()
+    connection.init_schema()
+    dataset.sync()
+
+if __name__ == "__main__": main()
