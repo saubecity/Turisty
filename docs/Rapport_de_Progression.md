@@ -40,7 +40,9 @@ Plusieurs éléments du projet ont déjà été préparés.
 La structure de la base de données a été définie avec les principales tables et leurs relations. Le fonctionnement des demandes de participation aux sorties a également été décrit et des cas de test ont été présentés.
 
 De mon côté (Julián), je travaille sur le catalogue et les filtres. J’ai préparé un catalogue de six lieux fictifs à Montréal, comprenant des activités, des restaurants et des hébergements. J’ai également développé les fonctions permettant de filtrer les lieux selon plusieurs critères et de rechercher un lieu avec son identifiant.
-(Sara ...)
+
+De mon côté (Sara Touré), j’ai travaillé sur la génération du programme de séjour dans src/programme.py. Mon code utilise le catalogue de Julián pour proposer des lieux selon la durée du séjour, le budget, le nombre de personnes, les intérêts et la tranche d’âge. Il calcule le coût total et le budget restant. J’ai préparé trois tests : un séjour valide de deux jours qui coûte 130 $ sur un budget de 150 $, une demande de quatre jours qui est refusée et un séjour pour lequel le budget est insuffisant.
+
 (Massyl ...)
 
 (Matheus Cavalcanti) je travaille sur les demandes de participation aux sorties. J’ai programmé les fonctions qui vérifient une demande (membre identifié, sortie existante et pas déjà passée, aucune demande en double, place libre) et qui l’enregistrent avec le statut « En attente » dans la base SQLite, avec des requêtes paramétrées. J’ai aussi préparé des données de démonstration (une sortie avec une place libre, une sortie complète et une sortie passée) et six tests, qui ont tous réussi.
