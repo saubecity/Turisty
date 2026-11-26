@@ -1,4 +1,3 @@
-
 from database.connection import get_db
 
 
@@ -55,6 +54,8 @@ def charger_catalogue():
                 TypeAttraction,
                 AdresseAttraction,
                 Description,
+                date_debut,
+                date_fin,
                 PrixAttraction,
                 MinAge,
                 MaxAge,
@@ -75,16 +76,18 @@ def charger_catalogue():
             "nom": row["NameAttraction"],
             "categorie": row["TypeAttraction"],
             "adresse": row["AdresseAttraction"],
-            "latitude": row["Latitude"],
-            "longitude": row["Longitude"],
             "description": row["Description"],
+            "date_debut": row["date_debut"],
+            "date_fin": row["date_fin"],
             "prix": row["PrixAttraction"],
             "unite_prix": "Par personne",
             "interets": determiner_interets(row["TypeAttraction"]),
             "tranche_age": convertir_tranche_age(
                 row["MinAge"],
-                row["MaxAge"],
-            )
+                row["MaxAge"]
+            ),
+            "latitude": row["Latitude"],
+            "longitude": row["Longitude"]
         })
 
     return catalogue
