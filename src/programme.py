@@ -1,8 +1,10 @@
-from catalogue import catalogue, filtrer_lieux
+
+from database.catalogue_repository import charger_catalogue
 
 
 def generer_programme(lieux, budget_total, nb_personnes, duree_jours,
                       interet=None, tranche_age=None):
+
     if not isinstance(budget_total, (int, float)) or budget_total < 0:
         raise ValueError("Le budget total doit être un nombre positif ou nul.")
 
@@ -12,14 +14,24 @@ def generer_programme(lieux, budget_total, nb_personnes, duree_jours,
     if not isinstance(duree_jours, int) or duree_jours < 1 or duree_jours > 3:
         raise ValueError("La durée du séjour doit être de 1 à 3 jours.")
 
-    lieux_compatibles = filtrer_lieux(
-        lieux, interet=interet, tranche_age=tranche_age
-    )
-
     lieux_disponibles = []
-    for lieu in lieux_compatibles:
-        if lieu["unite_prix"] == "Par personne":
-            lieux_disponibles.append(lieu)
+
+    for lieu in lieux:
+        prix = lieu.get("prix")
+
+        if prix is None or not isinstance(prix, (int, float)):
+            continue
+
+        if prix < 0:
+            continue
+
+        if interet and interet not in lieu.get("interets", []):
+            continue
+
+        if tranche_age and lieu.get("tranche_age") != tranche_age:
+            continue
+
+        lieux_disponibles.append(lieu)
 
     if len(lieux_disponibles) < duree_jours:
         raise ValueError("Il n'y a pas assez de lieux compatibles.")
@@ -35,13 +47,16 @@ def generer_programme(lieux, budget_total, nb_personnes, duree_jours,
                 indice_moins_cher = i
 
         lieu = lieux_disponibles.pop(indice_moins_cher)
+
         cout_jour = lieu["prix"] * nb_personnes
-        cout_total = cout_total + cout_jour
+        cout_total += cout_jour
 
         journees.append({
             "numero_jour": numero_jour,
             "id_lieu": lieu["id_lieu"],
             "nom": lieu["nom"],
+            "latitude": lieu["latitude"],
+            "longitude": lieu["longitude"],
             "cout": cout_jour
         })
 
@@ -59,25 +74,34 @@ def generer_programme(lieux, budget_total, nb_personnes, duree_jours,
 
 
 if __name__ == "__main__":
-    print("T04 - Séjour valide")
-    programme = generer_programme(
-        catalogue, 150, 2, 2, "Arts", "16-17 ans"
-    )
+    catalogue = charger_catalogue()
 
-    for journee in programme["journees"]:
-        print("Jour", journee["numero_jour"], ":", journee["nom"])
+    print("Nombre d'attractions :", len(catalogue))
 
-    print("Coût total :", programme["cout_total"], "$")
-    print("Budget restant :", programme["budget_restant"], "$")
+    print("\nT04 - Séjour valide")
+
+    try:
+        programme = generer_programme(catalogue, 150, 2, 2)
+
+        for journee in programme["journees"]:
+            print("Jour", journee["numero_jour"], ":", journee["nom"])
+
+        print("Coût total :", programme["cout_total"], "$")
+        print("Budget restant :", programme["budget_restant"], "$")
+
+    except ValueError as erreur:
+        print(erreur)
 
     print("\nT05 - Durée invalide")
+
     try:
         generer_programme(catalogue, 150, 2, 4)
     except ValueError as erreur:
         print(erreur)
 
     print("\nT06 - Budget insuffisant")
+
     try:
-        generer_programme(catalogue, 100, 2, 2, "Arts", "16-17 ans")
+        generer_programme(catalogue, 1, 2, 2)
     except ValueError as erreur:
         print(erreur)

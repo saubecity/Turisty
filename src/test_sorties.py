@@ -3,6 +3,9 @@ from datetime import datetime
 from pathlib import Path
 from database import connection
 
+from database.connection import get_db
+ 
+
 from sorties import (
     STATUT_ACCEPTEE,
     demander_participation,
@@ -102,3 +105,4 @@ if __name__ == "__main__":
     r1_sortie_inexistante()
     r2_sortie_passee()
     r3_membre_non_identifie()
+    

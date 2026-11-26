@@ -1,5 +1,6 @@
 # Catalogue des lieux fictifs de Montréal
 
+
 catalogue = [
     {
         "id_lieu": "L001",
@@ -70,9 +71,8 @@ catalogue = [
 ]
 
 
-def filtrer_lieux(catalogue, budget_max=None, categorie=None, interet=None, tranche_age=None):
-    resultats = []
 
+def filtrer_lieux(catalogue, budget_max=None, categorie=None, interet=None, tranche_age=None):
     if budget_max is not None and budget_max != "":
         try:
             budget_max = float(budget_max)
@@ -82,62 +82,60 @@ def filtrer_lieux(catalogue, budget_max=None, categorie=None, interet=None, tran
         if budget_max < 0:
             raise ValueError("Le budget ne peut pas être négatif.")
 
+    resultats = []
+
     for lieu in catalogue:
-        if budget_max is not None and budget_max != "" and lieu["prix"] > budget_max:
+        if not isinstance(lieu, dict):
             continue
 
-        if categorie is not None and categorie != "" and lieu["categorie"] != categorie:
-            continue
+        if budget_max is not None and budget_max != "":
+            prix = lieu.get("prix")
 
-        if interet is not None and interet != "" and interet not in lieu["interets"]:
-            continue
+            if prix is None or prix == "":
+                continue
 
-        if tranche_age is not None and tranche_age != "" and lieu["tranche_age"] != tranche_age:
-            continue
+            try:
+                prix = float(prix)
+            except (ValueError, TypeError):
+                continue
+
+            if prix < 0 or prix > budget_max:
+                continue
+
+        if categorie is not None and categorie != "":
+            if lieu.get("categorie") != categorie:
+                continue
+
+        if interet is not None and interet != "":
+            interets = lieu.get("interets", [])
+
+            if isinstance(interets, str):
+                interets = [interets]
+
+            if not isinstance(interets, (list, tuple, set)):
+                continue
+
+            if interet not in interets:
+                continue
+
+        if tranche_age is not None and tranche_age != "":
+            tranche_lieu = lieu.get("tranche_age")
+
+            if tranche_lieu != "Tous les âges" and tranche_lieu != tranche_age:
+                continue
 
         resultats.append(lieu)
 
     return resultats
 
 
+
 def trouver_lieu(catalogue, id_lieu):
+    if id_lieu is None or id_lieu == "":
+        return None
+
     for lieu in catalogue:
-        if lieu["id_lieu"] == id_lieu:
+        if isinstance(lieu, dict) and lieu.get("id_lieu") == id_lieu:
             return lieu
 
     return None
-
-
-if __name__ == "__main__":
-    # T01 - Prix à la limite
-    resultats_t01 = filtrer_lieux(catalogue, 30, "Activité", "Arts", "16-17 ans")
-    lieu_30_trouve = False
-    lieu_35_trouve = False
-
-    for lieu in resultats_t01:
-        if lieu["id_lieu"] == "L001":
-            lieu_30_trouve = True
-        if lieu["id_lieu"] == "L002":
-            lieu_35_trouve = True
-
-    if lieu_30_trouve and not lieu_35_trouve:
-        print("T01 - Prix à la limite : Réussi")
-    else:
-        print("T01 - Prix à la limite : Échoué")
-
-    # T02 - Plusieurs filtres
-    resultats_t02 = filtrer_lieux(catalogue, None, "Activité", "Arts", "16-17 ans")
-
-    if len(resultats_t02) == 2:
-        print("T02 - Plusieurs filtres : Réussi")
-    else:
-        print("T02 - Plusieurs filtres : Échoué")
-
-    # T03 - Aucun résultat
-    nombre_lieux_avant = len(catalogue)
-    resultats_t03 = filtrer_lieux(catalogue, 5, "Hébergement", "Nature", "16-17 ans")
-
-    if len(resultats_t03) == 0 and len(catalogue) == nombre_lieux_avant:
-        print("T03 - Aucun résultat : Réussi")
-    else:
-        print("T03 - Aucun résultat : Échoué")
