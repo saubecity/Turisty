@@ -1,0 +1,36 @@
+T07 - Demande valide
+  Entrée  : membre démo, sortie libre (1 place libre)
+  Attendu : Demande enregistrée (En attente) ; places occupées : 2 -> 2
+  Observé : Demande enregistrée (En attente) ; places occupées : 2 -> 2
+  Verdict : RÉUSSI
+
+T08 - Sortie complète
+  Entrée  : membre démo, sortie complète
+  Attendu : Cette sortie est complète.
+  Observé : Cette sortie est complète.
+  Verdict : RÉUSSI
+
+T09 - Demande en double
+  Entrée  : membre démo, sortie libre, deux fois de suite
+  Attendu : Vous avez déjà fait une demande pour cette sortie. ; demandes enregistrées : 1
+  Observé : Vous avez déjà fait une demande pour cette sortie. ; demandes enregistrées : 1
+  Verdict : RÉUSSI
+
+R1 - Sortie inexistante
+  Entrée  : membre démo, sortie 99999
+  Attendu : Cette sortie n'existe pas.
+  Observé : Cette sortie n'existe pas.
+  Verdict : RÉUSSI
+
+R2 - Sortie passée
+  Entrée  : membre démo, sortie passée
+  Attendu : Cette sortie est déjà passée.
+  Observé : Cette sortie est déjà passée.
+  Verdict : RÉUSSI
+
+R3 - Membre non identifié
+  Entrée  : aucun membre, sortie libre
+  Attendu : Vous devez être identifié pour faire une demande.
+  Observé : Vous devez être identifié pour faire une demande.
+  Verdict : RÉUSSI
+
